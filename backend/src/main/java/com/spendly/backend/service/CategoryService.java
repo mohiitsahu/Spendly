@@ -2,9 +2,12 @@ package com.spendly.backend.service;
 
 import com.spendly.backend.dto.category.CategoryRequest;
 import com.spendly.backend.dto.category.CategoryResponse;
+import com.spendly.backend.entity.AppUser;
 import com.spendly.backend.entity.Category;
 import com.spendly.backend.exception.ResourceNotFoundException;
+import com.spendly.backend.repository.AppUserRepository;
 import com.spendly.backend.repository.CategoryRepository;
+import com.spendly.backend.security.CurrentUserProvider;
 import com.spendly.backend.tenant.TenantContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,14 +19,23 @@ import java.util.UUID;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final AppUserRepository userRepository;
+    private final CurrentUserProvider currentUserProvider;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, AppUserRepository userRepository,
+                            CurrentUserProvider currentUserProvider) {
         this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
+        AppUser user = userRepository.findById(currentUserProvider.getCurrentUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         Category category = new Category();
+        category.setUser(user);
         category.setName(request.name());
         category.setIcon(request.icon());
         category.setType(request.type());
@@ -33,7 +45,8 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> listAll() {
-        return categoryRepository.findAllByTenantId(TenantContext.get()).stream()
+        return categoryRepository.findAllByTenantIdAndUserId(TenantContext.get(), currentUserProvider.getCurrentUserId())
+                .stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -54,7 +67,7 @@ public class CategoryService {
     }
 
     private Category findOrThrow(UUID id) {
-        return categoryRepository.findByIdAndTenantId(id, TenantContext.get())
+        return categoryRepository.findByIdAndTenantIdAndUserId(id, TenantContext.get(), currentUserProvider.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 

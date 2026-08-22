@@ -9,7 +9,9 @@ import java.util.UUID;
 
 public interface BudgetRepository extends JpaRepository<Budget, UUID> {
 
-    List<Budget> findAllByTenantId(UUID tenantId);
+    List<Budget> findAllByTenantIdAndUserId(UUID tenantId, UUID userId);
 
-    Optional<Budget> findByTenantIdAndCategoryId(UUID tenantId, UUID categoryId);
+    Optional<Budget> findByIdAndTenantIdAndUserId(UUID id, UUID tenantId, UUID userId);
+
+    Optional<Budget> findByTenantIdAndUserIdAndCategoryId(UUID tenantId, UUID userId, UUID categoryId);
 }

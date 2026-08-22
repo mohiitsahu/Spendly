@@ -39,11 +39,12 @@ public class TransactionService {
     @Transactional
     public TransactionResponse create(TransactionRequest request) {
         UUID tenantId = TenantContext.get();
+        UUID userId = currentUserProvider.getCurrentUserId();
 
-        Category category = categoryRepository.findByIdAndTenantId(request.categoryId(), tenantId)
+        Category category = categoryRepository.findByIdAndTenantIdAndUserId(request.categoryId(), tenantId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-        AppUser user = userRepository.findById(currentUserProvider.getCurrentUserId())
+        AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Transaction transaction = new Transaction();
@@ -59,16 +60,17 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public PageResponse<TransactionResponse> list(Pageable pageable) {
-        Page<Transaction> page = transactionRepository.findAllByTenantIdOrderByOccurredAtDesc(
-                TenantContext.get(), pageable);
+        Page<Transaction> page = transactionRepository.findAllByTenantIdAndUserIdOrderByOccurredAtDesc(
+                TenantContext.get(), currentUserProvider.getCurrentUserId(), pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
     @Transactional
     public TransactionResponse update(UUID id, TransactionRequest request) {
         Transaction transaction = findOrThrow(id);
+        UUID userId = currentUserProvider.getCurrentUserId();
 
-        Category category = categoryRepository.findByIdAndTenantId(request.categoryId(), TenantContext.get())
+        Category category = categoryRepository.findByIdAndTenantIdAndUserId(request.categoryId(), TenantContext.get(), userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         transaction.setCategory(category);
@@ -86,7 +88,7 @@ public class TransactionService {
     }
 
     private Transaction findOrThrow(UUID id) {
-        return transactionRepository.findByIdAndTenantId(id, TenantContext.get())
+        return transactionRepository.findByIdAndTenantIdAndUserId(id, TenantContext.get(), currentUserProvider.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
     }
 

@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface GoalRepository extends JpaRepository<Goal, UUID> {
 
-    List<Goal> findAllByTenantId(UUID tenantId);
+    List<Goal> findAllByTenantIdAndUserId(UUID tenantId, UUID userId);
 
-    Optional<Goal> findByIdAndTenantId(UUID id, UUID tenantId);
+    Optional<Goal> findByIdAndTenantIdAndUserId(UUID id, UUID tenantId, UUID userId);
 }
