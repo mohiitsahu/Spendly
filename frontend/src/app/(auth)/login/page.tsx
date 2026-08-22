@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiClientError } from "@/lib/api-client";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -77,6 +78,14 @@ export default function LoginPage() {
             {isSubmitting ? "Logging in..." : "Log in"}
           </button>
         </form>
+
+        <div className="my-4 flex items-center gap-3">
+          <div className="flex-1 border-t border-gray-200" />
+          <span className="text-xs text-gray-400">OR</span>
+          <div className="flex-1 border-t border-gray-200" />
+        </div>
+
+        <GoogleSignInButton />
       </div>
     </main>
   );

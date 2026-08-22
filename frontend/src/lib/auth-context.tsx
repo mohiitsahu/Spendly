@@ -15,6 +15,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (request: LoginRequest) => Promise<void>;
   register: (request: RegisterRequest) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -24,9 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On first load, check if a token already exists (e.g. page refresh) and
-  // treat that as "still logged in" - we don't re-verify with the backend
-  // here, just trust the stored token until an API call proves it's expired.
   useEffect(() => {
     const token = getToken();
     if (token) {
@@ -50,6 +48,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser({ userId: response.userId, email: response.email });
   }
 
+  async function handleLoginWithGoogle(idToken: string) {
+    const response = await authApi.loginWithGoogle({ idToken });
+    setToken(response.accessToken);
+    setUser({ userId: response.userId, email: response.email });
+  }
+
   function handleLogout() {
     clearToken();
     setUser(null);
@@ -57,7 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login: handleLogin, register: handleRegister, logout: handleLogout }}
+      value={{
+        user,
+        isLoading,
+        login: handleLogin,
+        register: handleRegister,
+        loginWithGoogle: handleLoginWithGoogle,
+        logout: handleLogout,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -72,9 +83,6 @@ export function useAuth(): AuthContextValue {
   return context;
 }
 
-// Decodes a JWT's payload without verifying the signature - fine here since
-// we're only reading it for display purposes; the backend is what actually
-// enforces validity on every real request.
 function decodeJwtPayload(token: string): { sub: string; email: string } | null {
   try {
     const payloadBase64 = token.split(".")[1];
