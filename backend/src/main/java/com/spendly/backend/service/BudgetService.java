@@ -1,0 +1,81 @@
+package com.spendly.backend.service;
+
+import com.spendly.backend.dto.budget.BudgetRequest;
+import com.spendly.backend.dto.budget.BudgetResponse;
+import com.spendly.backend.dto.category.CategoryResponse;
+import com.spendly.backend.entity.Budget;
+import com.spendly.backend.entity.Category;
+import com.spendly.backend.exception.ResourceNotFoundException;
+import com.spendly.backend.repository.BudgetRepository;
+import com.spendly.backend.repository.CategoryRepository;
+import com.spendly.backend.tenant.TenantContext;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class BudgetService {
+
+    private final BudgetRepository budgetRepository;
+    private final CategoryRepository categoryRepository;
+
+    public BudgetService(BudgetRepository budgetRepository, CategoryRepository categoryRepository) {
+        this.budgetRepository = budgetRepository;
+        this.categoryRepository = categoryRepository;
+    }
+
+    @Transactional
+    public BudgetResponse create(BudgetRequest request) {
+        UUID tenantId = TenantContext.get();
+
+        Category category = categoryRepository.findByIdAndTenantId(request.categoryId(), tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        Budget budget = new Budget();
+        budget.setCategory(category);
+        budget.setLimitAmount(request.limitAmount());
+        budgetRepository.save(budget);
+
+        return toResponse(budget);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BudgetResponse> listAll() {
+        return budgetRepository.findAllByTenantId(TenantContext.get()).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public BudgetResponse update(UUID id, BudgetRequest request) {
+        Budget budget = findOrThrow(id);
+
+        Category category = categoryRepository.findByIdAndTenantId(request.categoryId(), TenantContext.get())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        budget.setCategory(category);
+        budget.setLimitAmount(request.limitAmount());
+
+        return toResponse(budget);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        Budget budget = findOrThrow(id);
+        budgetRepository.delete(budget);
+    }
+
+    private Budget findOrThrow(UUID id) {
+        return budgetRepository.findById(id)
+                .filter(b -> b.getTenantId().equals(TenantContext.get()))
+                .orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
+    }
+
+    private BudgetResponse toResponse(Budget b) {
+        CategoryResponse categoryResponse = new CategoryResponse(
+                b.getCategory().getId(), b.getCategory().getName(), b.getCategory().getIcon(), b.getCategory().getType());
+        return new BudgetResponse(b.getId(), categoryResponse, b.getPeriod(), b.getLimitAmount());
+    }
+}

@@ -36,7 +36,7 @@ CREATE TABLE transaction (
     user_id         UUID NOT NULL REFERENCES app_user (id) ON DELETE CASCADE,
     category_id     UUID NOT NULL REFERENCES category (id),
     amount          NUMERIC(14, 2) NOT NULL,
-    currency        CHAR(3) NOT NULL DEFAULT 'INR',
+    currency        VARCHAR(3) NOT NULL DEFAULT 'INR',
     note            VARCHAR(280),
     occurred_at     TIMESTAMPTZ NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
