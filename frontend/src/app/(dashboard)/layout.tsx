@@ -23,13 +23,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (!user) {
-    return null; // brief flash before the redirect above kicks in
+    return null;
   }
 
   return (
     <div className="min-h-screen">
       <nav className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <span className="font-semibold">Spendly</span>
+        <div className="flex items-center gap-6">
+          <span className="font-semibold">Spendly</span>
+          <a href="/dashboard" className="text-sm">Dashboard</a>
+          <a href="/categories" className="text-sm">Categories</a>
+          <a href="/transactions" className="text-sm">Transactions</a>
+          <a href="/budgets" className="text-sm">Budgets</a>
+          <a href="/goals" className="text-sm">Goals</a>
+        </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="text-gray-600">{user.email}</span>
           <button
