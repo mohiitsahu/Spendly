@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spendly-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: spendly
+      POSTGRES_USER: spendly
+      POSTGRES_PASSWORD: spendly_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - spendly_pg_data:/var/lib/postgresql/data
+
+volumes:
+  spendly_pg_data:
