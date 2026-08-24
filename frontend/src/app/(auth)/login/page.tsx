@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { ApiClientError } from "@/lib/api-client";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
@@ -35,13 +36,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
+    <main className="flex min-h-screen items-center justify-center px-4 bg-paper">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold mb-6">Log in to Spendly</h1>
+        <p className="font-display text-2xl text-ink mb-1">Spendly</p>
+        <h1 className="text-ink-soft text-sm mb-8">Log in to your ledger</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-ink mb-1">
               Email
             </label>
             <input
@@ -50,12 +52,12 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-ink mb-1">
               Password
             </label>
             <input
@@ -64,28 +66,35 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-clay-dark">{error}</p>}
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-black text-white py-2 font-medium disabled:opacity-50"
+            className="w-full rounded-md bg-forest text-white py-2 font-medium hover:bg-forest-dark transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Logging in..." : "Log in"}
           </button>
         </form>
 
-        <div className="my-4 flex items-center gap-3">
-          <div className="flex-1 border-t border-gray-200" />
-          <span className="text-xs text-gray-400">OR</span>
-          <div className="flex-1 border-t border-gray-200" />
+        <div className="my-6 flex items-center gap-3">
+          <div className="flex-1 border-t border-line" />
+          <span className="text-xs text-ink-soft">OR</span>
+          <div className="flex-1 border-t border-line" />
         </div>
 
         <GoogleSignInButton />
+
+        <p className="mt-6 text-sm text-center text-ink-soft">
+          New here?{" "}
+          <Link href="/register" className="text-forest font-medium hover:underline">
+            Create an account
+          </Link>
+        </p>
       </div>
     </main>
   );

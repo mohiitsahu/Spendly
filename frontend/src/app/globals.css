@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+@theme {
+  --color-paper: #f1f4ef;
+  --color-surface: #ffffff;
+  --color-ink: #16241c;
+  --color-ink-soft: #4d5c52;
+  --color-forest: #1f6f4a;
+  --color-forest-dark: #16532f;
+  --color-clay: #b5533c;
+  --color-clay-dark: #8f3f2c;
+  --color-gold: #c9a227;
+  --color-line: #dce3d8;
+
+  --font-display: var(--font-display), serif;
+  --font-body: var(--font-body), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ledger stripe - the app's signature: a colored left edge on income/expense rows */
+.ledger-row {
+  border-left: 3px solid transparent;
+}
+
+.ledger-row--income {
+  border-left-color: var(--color-forest);
+}
+
+.ledger-row--expense {
+  border-left-color: var(--color-clay);
+}
