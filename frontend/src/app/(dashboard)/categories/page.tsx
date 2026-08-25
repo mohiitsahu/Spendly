@@ -38,7 +38,7 @@ export default function CategoriesPage() {
     try {
       await createCategory({ name, type });
       setName("");
-      await loadCategories(); // refetch to show the new one
+      await loadCategories();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Failed to create category");
     } finally {
@@ -57,7 +57,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="max-w-md">
-      <h1 className="text-xl font-semibold mb-4">Categories</h1>
+      <h1 className="font-display text-2xl text-ink mb-6">Categories</h1>
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-6">
         <input
@@ -66,12 +66,12 @@ export default function CategoriesPage() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2"
+          className="flex-1 rounded-md border border-line bg-surface px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
         />
         <select
           value={type}
           onChange={(e) => setType(e.target.value as CategoryType)}
-          className="rounded-md border border-gray-300 px-3 py-2"
+          className="rounded-md border border-line bg-surface px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
         >
           <option value="EXPENSE">Expense</option>
           <option value="INCOME">Income</option>
@@ -79,30 +79,35 @@ export default function CategoriesPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-black text-white px-4 py-2 disabled:opacity-50"
+          className="rounded-md bg-forest text-white px-4 py-2 font-medium hover:bg-forest-dark transition-colors disabled:opacity-50"
         >
           Add
         </button>
       </form>
 
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+      {error && <p className="text-sm text-clay-dark mb-4">{error}</p>}
 
       {isLoading ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-sm text-ink-soft">Loading...</p>
       ) : categories.length === 0 ? (
-        <p className="text-sm text-gray-500">No categories yet.</p>
+        <p className="text-sm text-ink-soft">No categories yet — add your first one above.</p>
       ) : (
         <ul className="space-y-2">
           {categories.map((category) => (
             <li
               key={category.id}
-              className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2"
+              className={`ledger-row ${
+                category.type === "INCOME" ? "ledger-row--income" : "ledger-row--expense"
+              } flex items-center justify-between bg-surface border border-line rounded-md pl-3 pr-3 py-2`}
             >
-              <span>
+              <span className="text-ink">
                 {category.name}{" "}
-                <span className="text-xs text-gray-500">({category.type})</span>
+                <span className="text-xs text-ink-soft">({category.type.toLowerCase()})</span>
               </span>
-              <button onClick={() => handleDelete(category.id)} className="text-sm text-red-600 underline">
+              <button
+                onClick={() => handleDelete(category.id)}
+                className="text-sm text-clay-dark hover:underline"
+              >
                 Delete
               </button>
             </li>
