@@ -42,6 +42,12 @@ public class BudgetService {
         Category category = categoryRepository.findByIdAndTenantIdAndUserId(request.categoryId(), tenantId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
+        budgetRepository.findByTenantIdAndUserIdAndCategoryId(tenantId, userId, category.getId())
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException(
+                            "A budget already exists for " + category.getName() + " — edit or delete it instead");
+                });
+
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -69,6 +75,17 @@ public class BudgetService {
 
         Category category = categoryRepository.findByIdAndTenantIdAndUserId(request.categoryId(), TenantContext.get(), userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        // Only re-check for a duplicate if they're actually switching to a
+        // different category - otherwise this budget's own row would always
+        // "conflict with itself."
+        if (!budget.getCategory().getId().equals(category.getId())) {
+            budgetRepository.findByTenantIdAndUserIdAndCategoryId(TenantContext.get(), userId, category.getId())
+                    .ifPresent(existing -> {
+                        throw new IllegalArgumentException(
+                                "A budget already exists for " + category.getName() + " — edit or delete it instead");
+                    });
+        }
 
         budget.setCategory(category);
         budget.setLimitAmount(request.limitAmount());
