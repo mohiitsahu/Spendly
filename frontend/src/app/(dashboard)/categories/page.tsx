@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Trash2 } from "lucide-react";
 import { CategoryResponse, CategoryType } from "@/types/category";
 import { listCategories, createCategory, deleteCategory } from "@/lib/category-api";
 import { ApiClientError } from "@/lib/api-client";
+import { useToast } from "@/lib/toast-context";
 
 const ICON_OPTIONS = [
   "🍔", "🛒", "🏠", "🚗", "✈️", "🎬", "💊", "📚",
@@ -11,9 +14,9 @@ const ICON_OPTIONS = [
 ];
 
 export default function CategoriesPage() {
+  const { showToast } = useToast();
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [type, setType] = useState<CategoryType>("EXPENSE");
@@ -30,7 +33,7 @@ export default function CategoriesPage() {
       const data = await listCategories();
       setCategories(data);
     } catch {
-      setError("Failed to load categories");
+      showToast("Failed to load categories", "error");
     } finally {
       setIsLoading(false);
     }
@@ -38,26 +41,28 @@ export default function CategoriesPage() {
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
 
     try {
       await createCategory({ name, type, icon });
+      const createdName = name;
       setName("");
       await loadCategories();
+      showToast(`"${createdName}" added`, "success");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Failed to create category");
+      showToast(err instanceof ApiClientError ? err.message : "Failed to create category", "error");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: string, categoryName: string) {
     try {
       await deleteCategory(id);
       setCategories((prev) => prev.filter((c) => c.id !== id));
+      showToast(`"${categoryName}" deleted`, "success");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Failed to delete category");
+      showToast(err instanceof ApiClientError ? err.message : "Failed to delete category", "error");
     }
   }
 
@@ -89,9 +94,10 @@ export default function CategoriesPage() {
           <p className="text-xs text-ink-soft mb-2">Icon</p>
           <div className="flex flex-wrap gap-1.5">
             {ICON_OPTIONS.map((option) => (
-              <button
+              <motion.button
                 key={option}
                 type="button"
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setIcon(option)}
                 aria-label={`Choose icon ${option}`}
                 className={`w-9 h-9 rounded-md border text-lg flex items-center justify-center transition-colors ${
@@ -101,21 +107,20 @@ export default function CategoriesPage() {
                 }`}
               >
                 {option}
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
 
-        <button
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={isSubmitting}
           className="rounded-md bg-forest text-white px-4 py-2 font-medium hover:bg-forest-dark transition-colors disabled:opacity-50"
         >
           Add category
-        </button>
+        </motion.button>
       </form>
-
-      {error && <p className="text-sm text-clay-dark mb-4">{error}</p>}
 
       {isLoading ? (
         <p className="text-sm text-ink-soft">Loading...</p>
@@ -123,26 +128,34 @@ export default function CategoriesPage() {
         <p className="text-sm text-ink-soft">No categories yet — add your first one above.</p>
       ) : (
         <ul className="space-y-2">
-          {categories.map((category) => (
-            <li
-              key={category.id}
-              className={`ledger-row ${
-                category.type === "INCOME" ? "ledger-row--income" : "ledger-row--expense"
-              } flex items-center justify-between bg-surface border border-line rounded-md pl-3 pr-3 py-2`}
-            >
-              <span className="text-ink flex items-center gap-2">
-                <span className="text-lg">{category.icon}</span>
-                {category.name}{" "}
-                <span className="text-xs text-ink-soft">({category.type.toLowerCase()})</span>
-              </span>
-              <button
-                onClick={() => handleDelete(category.id)}
-                className="text-sm text-clay-dark hover:underline"
+          <AnimatePresence initial={false}>
+            {categories.map((category, i) => (
+              <motion.li
+                key={category.id}
+                layout
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
+                transition={{ duration: 0.25, delay: i * 0.04 }}
+                className={`ledger-row ${
+                  category.type === "INCOME" ? "ledger-row--income" : "ledger-row--expense"
+                } flex items-center justify-between bg-surface border border-line rounded-md pl-3 pr-3 py-2`}
               >
-                Delete
-              </button>
-            </li>
-          ))}
+                <span className="text-ink flex items-center gap-2">
+                  <span className="text-lg">{category.icon}</span>
+                  {category.name}{" "}
+                  <span className="text-xs text-ink-soft">({category.type.toLowerCase()})</span>
+                </span>
+                <button
+                  onClick={() => handleDelete(category.id, category.name)}
+                  aria-label="Delete category"
+                  className="text-ink-soft hover:text-clay-dark transition-colors"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ul>
       )}
     </div>

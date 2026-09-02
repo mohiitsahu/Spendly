@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Trash2 } from "lucide-react";
 import { TransactionResponse } from "@/types/transaction";
 import { CategoryResponse } from "@/types/category";
 import { listTransactions, createTransaction, deleteTransaction } from "@/lib/transaction-api";
 import { listCategories } from "@/lib/category-api";
 import { ApiClientError } from "@/lib/api-client";
+import { useToast } from "@/lib/toast-context";
 
 export default function TransactionsPage() {
+  const { showToast } = useToast();
   const [transactions, setTransactions] = useState<TransactionResponse[]>([]);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
@@ -32,7 +35,7 @@ export default function TransactionsPage() {
         setCategoryId(cats[0].id);
       }
     } catch {
-      setError("Failed to load data");
+      showToast("Failed to load data", "error");
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +43,6 @@ export default function TransactionsPage() {
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -54,8 +56,9 @@ export default function TransactionsPage() {
       setNote("");
       const txPage = await listTransactions();
       setTransactions(txPage.content);
+      showToast("Transaction added", "success");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Failed to create transaction");
+      showToast(err instanceof ApiClientError ? err.message : "Failed to create transaction", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -65,8 +68,9 @@ export default function TransactionsPage() {
     try {
       await deleteTransaction(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
+      showToast("Transaction deleted", "success");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Failed to delete transaction");
+      showToast(err instanceof ApiClientError ? err.message : "Failed to delete transaction", "error");
     }
   }
 
@@ -118,16 +122,15 @@ export default function TransactionsPage() {
           onChange={(e) => setNote(e.target.value)}
           className="flex-1 min-w-[150px] rounded-md border border-line bg-surface px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
         />
-        <button
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={isSubmitting}
           className="rounded-md bg-forest text-white px-4 py-2 font-medium hover:bg-forest-dark transition-colors disabled:opacity-50"
         >
           Add
-        </button>
+        </motion.button>
       </form>
-
-      {error && <p className="text-sm text-clay-dark mb-4">{error}</p>}
 
       {isLoading ? (
         <p className="text-sm text-ink-soft">Loading...</p>
@@ -135,36 +138,44 @@ export default function TransactionsPage() {
         <p className="text-sm text-ink-soft">No transactions yet.</p>
       ) : (
         <ul className="space-y-2">
-          {transactions.map((t) => {
-            const isExpense = t.category.type === "EXPENSE";
-            return (
-              <li
-                key={t.id}
-                className={`ledger-row ${
-                  isExpense ? "ledger-row--expense" : "ledger-row--income"
-                } flex items-center justify-between bg-surface border border-line rounded-md pl-3 pr-3 py-2`}
-              >
-                <div>
-                  <span
-                    className={`font-mono-figures font-medium ${
-                      isExpense ? "text-clay-dark" : "text-forest"
-                    }`}
-                  >
-                    {isExpense ? "-" : "+"}
-                    {t.currency} {t.amount.toFixed(2)}
-                  </span>
-                  <span className="text-sm text-ink-soft ml-2">{t.category.name}</span>
-                  {t.note && <span className="text-sm text-ink-soft/70 ml-2">{t.note}</span>}
-                </div>
-                <button
-                  onClick={() => handleDelete(t.id)}
-                  className="text-sm text-clay-dark hover:underline"
+          <AnimatePresence initial={false}>
+            {transactions.map((t, i) => {
+              const isExpense = t.category.type === "EXPENSE";
+              return (
+                <motion.li
+                  key={t.id}
+                  layout
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
+                  transition={{ duration: 0.25, delay: i * 0.04 }}
+                  className={`ledger-row ${
+                    isExpense ? "ledger-row--expense" : "ledger-row--income"
+                  } flex items-center justify-between bg-surface border border-line rounded-md pl-3 pr-3 py-2`}
                 >
-                  Delete
-                </button>
-              </li>
-            );
-          })}
+                  <div>
+                    <span
+                      className={`font-mono-figures font-medium ${
+                        isExpense ? "text-clay-dark" : "text-forest"
+                      }`}
+                    >
+                      {isExpense ? "-" : "+"}
+                      {t.currency} {t.amount.toFixed(2)}
+                    </span>
+                    <span className="text-sm text-ink-soft ml-2">{t.category.name}</span>
+                    {t.note && <span className="text-sm text-ink-soft/70 ml-2">{t.note}</span>}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(t.id)}
+                    aria-label="Delete transaction"
+                    className="text-ink-soft hover:text-clay-dark transition-colors"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
         </ul>
       )}
     </div>

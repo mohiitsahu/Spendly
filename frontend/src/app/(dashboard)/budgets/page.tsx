@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Trash2 } from "lucide-react";
 import { BudgetResponse } from "@/types/budget";
 import { CategoryResponse } from "@/types/category";
 import { listBudgets, createBudget, deleteBudget } from "@/lib/budget-api";
 import { listCategories } from "@/lib/category-api";
 import { ApiClientError } from "@/lib/api-client";
+import { useToast } from "@/lib/toast-context";
 
 export default function BudgetsPage() {
+  const { showToast } = useToast();
   const [budgets, setBudgets] = useState<BudgetResponse[]>([]);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [categoryId, setCategoryId] = useState("");
   const [limitAmount, setLimitAmount] = useState("");
@@ -31,7 +34,7 @@ export default function BudgetsPage() {
         setCategoryId(cats[0].id);
       }
     } catch {
-      setError("Failed to load data");
+      showToast("Failed to load data", "error");
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +42,6 @@ export default function BudgetsPage() {
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -47,8 +49,9 @@ export default function BudgetsPage() {
       setLimitAmount("");
       const budgetList = await listBudgets();
       setBudgets(budgetList);
+      showToast("Budget set", "success");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Failed to create budget");
+      showToast(err instanceof ApiClientError ? err.message : "Failed to create budget", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -58,8 +61,9 @@ export default function BudgetsPage() {
     try {
       await deleteBudget(id);
       setBudgets((prev) => prev.filter((b) => b.id !== id));
+      showToast("Budget deleted", "success");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Failed to delete budget");
+      showToast(err instanceof ApiClientError ? err.message : "Failed to delete budget", "error");
     }
   }
 
@@ -104,16 +108,15 @@ export default function BudgetsPage() {
           onChange={(e) => setLimitAmount(e.target.value)}
           className="w-32 rounded-md border border-line bg-surface px-3 py-2 text-ink font-mono-figures focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
         />
-        <button
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={isSubmitting}
           className="rounded-md bg-forest text-white px-4 py-2 font-medium hover:bg-forest-dark transition-colors disabled:opacity-50"
         >
           Set
-        </button>
+        </motion.button>
       </form>
-
-      {error && <p className="text-sm text-clay-dark mb-4">{error}</p>}
 
       {isLoading ? (
         <p className="text-sm text-ink-soft">Loading...</p>
@@ -121,24 +124,32 @@ export default function BudgetsPage() {
         <p className="text-sm text-ink-soft">No budgets set yet.</p>
       ) : (
         <ul className="space-y-2">
-          {budgets.map((b) => (
-            <li
-              key={b.id}
-              className="flex items-center justify-between bg-surface border-l-3 border-l-gold border-t border-r border-b border-line rounded-md pl-3 pr-3 py-2"
-            >
-              <span className="text-ink">
-                {b.category.name}:{" "}
-                <span className="font-mono-figures font-medium">{b.limitAmount.toFixed(2)}</span>{" "}
-                <span className="text-xs text-ink-soft">/ {b.period.toLowerCase()}</span>
-              </span>
-              <button
-                onClick={() => handleDelete(b.id)}
-                className="text-sm text-clay-dark hover:underline"
+          <AnimatePresence initial={false}>
+            {budgets.map((b, i) => (
+              <motion.li
+                key={b.id}
+                layout
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
+                transition={{ duration: 0.25, delay: i * 0.04 }}
+                className="flex items-center justify-between bg-surface border-l-3 border-l-gold border-t border-r border-b border-line rounded-md pl-3 pr-3 py-2"
               >
-                Delete
-              </button>
-            </li>
-          ))}
+                <span className="text-ink">
+                  {b.category.name}:{" "}
+                  <span className="font-mono-figures font-medium">{b.limitAmount.toFixed(2)}</span>{" "}
+                  <span className="text-xs text-ink-soft">/ {b.period.toLowerCase()}</span>
+                </span>
+                <button
+                  onClick={() => handleDelete(b.id)}
+                  aria-label="Delete budget"
+                  className="text-ink-soft hover:text-clay-dark transition-colors"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ul>
       )}
     </div>
