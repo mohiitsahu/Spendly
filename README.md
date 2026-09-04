@@ -15,7 +15,7 @@ frontend/backend boundary.
 sender, which only delivers to the account owner's own email until a
 custom domain is verified. **Google Sign-In works fully for anyone** and
 is the easiest way to try the live demo. Email OTP login works correctly
-in code and is fully testable locally (see setup below) — the restriction
+in code and is fully testable locally. The restriction
 is a free-tier email deliverability limit, not an application bug.
 
 ## Screenshots
