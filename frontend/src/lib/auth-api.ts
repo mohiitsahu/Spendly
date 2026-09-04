@@ -1,16 +1,16 @@
 import { apiRequest } from "./api-client";
-import { AuthResponse, LoginRequest, RegisterRequest, GoogleAuthRequest } from "@/types/auth";
+import { AuthResponse, EmailOtpRequest, EmailOtpVerifyRequest, GoogleAuthRequest } from "@/types/auth";
 
-export function register(request: RegisterRequest): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>("/api/auth/register", {
+export function requestEmailOtp(request: EmailOtpRequest): Promise<void> {
+  return apiRequest<void>("/api/auth/otp/request", {
     method: "POST",
     body: request,
     auth: false,
   });
 }
 
-export function login(request: LoginRequest): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>("/api/auth/login", {
+export function verifyEmailOtp(request: EmailOtpVerifyRequest): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>("/api/auth/otp/verify", {
     method: "POST",
     body: request,
     auth: false,

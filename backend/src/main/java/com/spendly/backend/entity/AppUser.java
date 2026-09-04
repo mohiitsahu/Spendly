@@ -17,9 +17,6 @@ public class AppUser extends TenantScopedEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash")
-    private String passwordHash;
-
     @Column(name = "google_id", unique = true)
     private String googleId;
 

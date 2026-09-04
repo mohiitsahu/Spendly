@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { getToken, setToken, clearToken } from "./auth-storage";
 import * as authApi from "./auth-api";
-import { LoginRequest, RegisterRequest } from "@/types/auth";
+import { EmailOtpRequest, EmailOtpVerifyRequest } from "@/types/auth";
 
 interface AuthUser {
   userId: string;
@@ -13,8 +13,8 @@ interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (request: LoginRequest) => Promise<void>;
-  register: (request: RegisterRequest) => Promise<void>;
+  requestOtp: (request: EmailOtpRequest) => Promise<void>;
+  verifyOtp: (request: EmailOtpVerifyRequest) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
 }
@@ -36,14 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  async function handleLogin(request: LoginRequest) {
-    const response = await authApi.login(request);
-    setToken(response.accessToken);
-    setUser({ userId: response.userId, email: response.email });
+  async function handleRequestOtp(request: EmailOtpRequest) {
+    await authApi.requestEmailOtp(request);
   }
 
-  async function handleRegister(request: RegisterRequest) {
-    const response = await authApi.register(request);
+  async function handleVerifyOtp(request: EmailOtpVerifyRequest) {
+    const response = await authApi.verifyEmailOtp(request);
     setToken(response.accessToken);
     setUser({ userId: response.userId, email: response.email });
   }
@@ -64,8 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isLoading,
-        login: handleLogin,
-        register: handleRegister,
+        requestOtp: handleRequestOtp,
+        verifyOtp: handleVerifyOtp,
         loginWithGoogle: handleLoginWithGoogle,
         logout: handleLogout,
       }}

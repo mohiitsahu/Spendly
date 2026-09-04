@@ -17,7 +17,7 @@ export class ApiClientError extends Error {
 interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
-  auth?: boolean; // whether to attach the JWT - defaults to true
+  auth?: boolean;
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -45,10 +45,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw new ApiClientError(errorBody);
   }
 
-  // DELETE endpoints return 204 No Content - no body to parse
-  if (response.status === 204) {
+  // Some endpoints (like otp/request) return 200/204 with no body at all -
+  // only attempt to parse JSON if there's actually content to parse.
+  const text = await response.text();
+  if (!text) {
     return undefined as T;
   }
-
-  return response.json();
+  return JSON.parse(text);
 }

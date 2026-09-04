@@ -27,6 +27,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     Optional<Transaction> findByIdAndTenantIdAndUserId(UUID id, UUID tenantId, UUID userId);
 
+    boolean existsByTenantIdAndUserIdAndCategoryId(UUID tenantId, UUID userId, UUID categoryId);
+
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
             "WHERE t.tenantId = :tenantId AND t.user.id = :userId AND t.category.type = :type " +
             "AND t.occurredAt >= :from AND t.occurredAt < :to")

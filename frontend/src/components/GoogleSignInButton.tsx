@@ -4,8 +4,6 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-// Minimal typing for the parts of Google's Identity Services API we use -
-// the real library doesn't ship its own TypeScript types.
 declare global {
   interface Window {
     google?: {
@@ -49,10 +47,15 @@ export default function GoogleSignInButton() {
         },
       });
 
+      // Match the button's width to its actual container instead of a
+      // hardcoded pixel value, so it lines up with the form above it
+      // regardless of the container's max-width.
+      const containerWidth = buttonRef.current.offsetWidth;
+
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: "outline",
         size: "large",
-        width: 320,
+        width: containerWidth,
       });
     }
 
@@ -61,5 +64,5 @@ export default function GoogleSignInButton() {
     };
   }, [loginWithGoogle, router]);
 
-  return <div ref={buttonRef} />;
+  return <div ref={buttonRef} className="w-full" />;
 }

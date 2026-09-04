@@ -6,7 +6,9 @@ import com.spendly.backend.entity.AppUser;
 import com.spendly.backend.entity.Category;
 import com.spendly.backend.exception.ResourceNotFoundException;
 import com.spendly.backend.repository.AppUserRepository;
+import com.spendly.backend.repository.BudgetRepository;
 import com.spendly.backend.repository.CategoryRepository;
+import com.spendly.backend.repository.TransactionRepository;
 import com.spendly.backend.security.CurrentUserProvider;
 import com.spendly.backend.tenant.TenantContext;
 import org.springframework.stereotype.Service;
@@ -20,12 +22,17 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final AppUserRepository userRepository;
+    private final TransactionRepository transactionRepository;
+    private final BudgetRepository budgetRepository;
     private final CurrentUserProvider currentUserProvider;
 
     public CategoryService(CategoryRepository categoryRepository, AppUserRepository userRepository,
+                            TransactionRepository transactionRepository, BudgetRepository budgetRepository,
                             CurrentUserProvider currentUserProvider) {
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
+        this.budgetRepository = budgetRepository;
         this.currentUserProvider = currentUserProvider;
     }
 
@@ -63,6 +70,21 @@ public class CategoryService {
     @Transactional
     public void delete(UUID id) {
         Category category = findOrThrow(id);
+        UUID tenantId = TenantContext.get();
+        UUID userId = currentUserProvider.getCurrentUserId();
+
+        boolean hasTransactions = transactionRepository.existsByTenantIdAndUserIdAndCategoryId(tenantId, userId, id);
+        if (hasTransactions) {
+            throw new IllegalArgumentException(
+                    "Can't delete \"" + category.getName() + "\" - it still has transactions. Delete those first.");
+        }
+
+        boolean hasBudget = budgetRepository.findByTenantIdAndUserIdAndCategoryId(tenantId, userId, id).isPresent();
+        if (hasBudget) {
+            throw new IllegalArgumentException(
+                    "Can't delete \"" + category.getName() + "\" - it still has a budget. Delete that first.");
+        }
+
         categoryRepository.delete(category);
     }
 

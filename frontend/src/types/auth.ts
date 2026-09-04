@@ -5,15 +5,13 @@ export interface AuthResponse {
   newUser: boolean;
 }
 
-export interface RegisterRequest {
+export interface EmailOtpRequest {
   email: string;
-  password: string;
-  displayName: string;
 }
 
-export interface LoginRequest {
+export interface EmailOtpVerifyRequest {
   email: string;
-  password: string;
+  otp: string;
 }
 
 export interface GoogleAuthRequest {

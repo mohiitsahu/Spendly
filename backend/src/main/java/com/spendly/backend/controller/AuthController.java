@@ -1,9 +1,9 @@
 package com.spendly.backend.controller;
 
 import com.spendly.backend.dto.auth.AuthResponse;
+import com.spendly.backend.dto.auth.EmailOtpRequest;
+import com.spendly.backend.dto.auth.EmailOtpVerifyRequest;
 import com.spendly.backend.dto.auth.GoogleAuthRequest;
-import com.spendly.backend.dto.auth.LoginRequest;
-import com.spendly.backend.dto.auth.RegisterRequest;
 import com.spendly.backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +22,15 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request.email(), request.password(), request.displayName()));
+    @PostMapping("/otp/request")
+    public ResponseEntity<Void> requestOtp(@Valid @RequestBody EmailOtpRequest request) {
+        authService.requestEmailOtp(request.email());
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request.email(), request.password()));
+    @PostMapping("/otp/verify")
+    public ResponseEntity<AuthResponse> verifyOtp(@Valid @RequestBody EmailOtpVerifyRequest request) {
+        return ResponseEntity.ok(authService.verifyEmailOtp(request.email(), request.otp()));
     }
 
     @PostMapping("/google")

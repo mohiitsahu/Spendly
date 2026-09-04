@@ -3,14 +3,14 @@ spring:
     name: spendly-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/spendly
-    username: spendly
-    password: spendly_dev_password
+    url: ${SPENDLY_DB_URL:jdbc:postgresql://localhost:5432/spendly}
+    username: ${SPENDLY_DB_USERNAME:spendly}
+    password: ${SPENDLY_DB_PASSWORD:spendly_dev_password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: validate   # schema is owned by Flyway migrations, not Hibernate
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -22,7 +22,7 @@ spring:
     baseline-on-migrate: true
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spendly:
   jwt:
@@ -30,7 +30,12 @@ spendly:
     access-token-ttl-minutes: 15
   google:
     client-id: ${SPENDLY_GOOGLE_CLIENT_ID:changeme.apps.googleusercontent.com}
+  resend:
+    api-key: ${SPENDLY_RESEND_API_KEY:changeme}
+    from-address: ${SPENDLY_RESEND_FROM:onboarding@resend.dev}
   default-tenant-id: "00000000-0000-0000-0000-000000000001"
+  cors:
+    allowed-origin: ${SPENDLY_CORS_ORIGIN:http://localhost:3000}
 
 logging:
   level:
