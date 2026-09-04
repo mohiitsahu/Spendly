@@ -8,11 +8,20 @@ frontend/backend boundary.
 
 ## Live demo
 
-*(add your deployed link here once live)*
+- **App**: https://spendly-lime-one.vercel.app
+- **API**: https://spendly-backend-92a0.onrender.com
+
+**Note on email login:** the deployed app uses Resend's free-tier sandbox
+sender, which only delivers to the account owner's own email until a
+custom domain is verified. **Google Sign-In works fully for anyone** and
+is the easiest way to try the live demo. Email OTP login works correctly
+in code and is fully testable locally (see setup below) — the restriction
+is a free-tier email deliverability limit, not an application bug.
 
 ## Screenshots
 
-*(add a couple of screenshots here — dashboard and a CRUD page make a good pair)*
+![alt text](image.png) 
+![alt text](image-1.png)
 
 ## Tech stack
 
