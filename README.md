@@ -1,6 +1,6 @@
 # Spendly
 
-A full-stack personal expense tracker — track income and expenses, set monthly
+A full-stack personal expense tracker. Track income and expenses, set monthly
 budgets per category, follow savings goals, and see a real-time spending
 summary. Built as a from-scratch rebuild focused on proper system design:
 tenant-ready data architecture, per-user data isolation, and a clean
