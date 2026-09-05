@@ -61,4 +61,3 @@ The short version:
   `TenantContext` (backed by `ThreadLocal`) makes the current tenant
   available anywhere in the call stack without passing it explicitly.
 
-## Project structure
