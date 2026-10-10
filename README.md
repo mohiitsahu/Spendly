@@ -5,7 +5,6 @@ A full-stack personal finance tracker. Log income and expenses, set monthly budg
 ## 🔗 Live Demo
 
 - **App:** [spendly-lime-one.vercel.app](https://spendly-lime-one.vercel.app)
-- **API:** [spendly-backend-92a0.onrender.com](https://spendly-backend-92a0.onrender.com)
 
 > **Trying the demo:** use **Google Sign-In**, which works for everyone. Email OTP login works in code and is fully testable locally, but the deployed app uses Resend's free-tier sandbox sender, which only delivers to the account owner's email until a custom domain is verified. This is an email deliverability limit, not an application bug.
 >
